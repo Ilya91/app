@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Request;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UsersRequest extends FormRequest
+class UsersRequest extends Request
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +14,7 @@ class UsersRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,6 +26,23 @@ class UsersRequest extends FormRequest
     {
         return [
             //
+
+            'name'=> 'required',
+            'email'=>'required',
+            'role_id'=>'required',
+            'is_active'=>'required',
+            'password'=>'required'
+
+
+
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'name.required' => 'Поле имя обязательно к заполнению',
+            'email.required' => 'Поле почта обязательно к заполнению',
         ];
     }
 }
