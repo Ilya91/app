@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UsersEditRequest;
 use App\Photo;
 use App\Role;
 use App\User;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
 use App\Http\Requests\UsersRequest;
-use Illuminate\Support\Facades\Input;
-use Validator;
-use Redirect;
 use Illuminate\Support\Facades\Storage;
 
 class AdminUsersController extends Controller
@@ -54,8 +50,12 @@ class AdminUsersController extends Controller
      */
     public function store(UsersRequest $request)
     {
+        if(trim($request->password) == ''){
+            $input = $request->except('password');
+        }else{
+            $input = $request->all();
+        }
 
-        $input = $request->all();
         if ($file = $request->file('photo_id')){
             $name = time() . $file->getClientOriginalName();
             $file->move('images', $name);
@@ -66,7 +66,7 @@ class AdminUsersController extends Controller
         }
         $input['password'] = bcrypt($request->password);
         if(User::create($input)){
-            return view('admin.users.index');
+            return redirect('/admin/users')->with('message', 'Пользователь был успешно создан!');
         }
         //return $request->all();
     }
@@ -105,22 +105,34 @@ class AdminUsersController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UsersRequest $request, $id)
+    public function update(UsersEditRequest $request, $id)
     {
-        $user = User::find($id);
-        $input = $request->all();
+
+        if(trim($request->password) == ''){
+            $input = $request->except('password');
+        }else{
+            $input = $request->all();
+        }
+        $user = User::findOrFail($id);
+
         if ($file = $request->file('photo_id')){
 
-            if($user->photo_id){
-                $old_file = $user->photo->file;
-                Storage::disk('my')->delete($old_file);
-            }
-            $name = time() . $file->getClientOriginalName();
-            $file->move('images', $name);
-            $photo = Photo::find($id);
-            $photo->update(['file' => $name]);
 
-            $input['photo_id'] = $photo->id;
+            if($user->photo_id){
+                $path = public_path() . $user->photo->file;
+                \File::delete($path);
+                $name = time() . $file->getClientOriginalName();
+                $file->move('images', $name);
+                $photo = Photo::find($user->photo_id);
+                $photo->update(['file' => $name]);
+                $input['photo_id'] = $photo->id;
+            }else{
+                $name = time() . $file->getClientOriginalName();
+                //dd($name);
+                $file->move('images', $name);
+                $photo = Photo::create(['file' => $name]);
+                $input['photo_id'] = $photo->id;
+            }
         }
         $input['password'] = bcrypt($request->password);
         if($user->update($input)){
@@ -136,6 +148,20 @@ class AdminUsersController extends Controller
      */
     public function destroy($id)
     {
-        //
+
+        $user = User::find($id);
+        $name = $user->name;
+        $photo = Photo::find($user->photo_id);
+
+        if($user){
+            $user->delete();
+        }
+        if($photo){
+            $path = public_path() . $photo->file;
+            \File::delete($path);
+            $photo->delete();
+        }
+        $message = 'User ' . $name . ' was daleted!';
+        return redirect('/admin/users')->with('deleted_user', $message);
     }
 }
