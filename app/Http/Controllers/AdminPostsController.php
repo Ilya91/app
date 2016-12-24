@@ -66,7 +66,13 @@ class AdminPostsController extends Controller
      */
     public function edit($id)
     {
-        //
+        $categories = Category::pluck('name', 'id')->all();
+        $post = Post::findOrFail($id);
+        return view('admin.posts.edit',
+            [
+                'post' => $post,
+                'categories' => $categories
+            ]);
     }
 
     /**
