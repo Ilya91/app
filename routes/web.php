@@ -28,6 +28,13 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function (){
         }
     });
 
-    Route::resource('/users', 'AdminUsersController');
+    /*Route::group(['prefix' => 'users', 'middleware' => 'auth'], function (){
+        Route::get('/', ['uses' => 'AdminUsersController@index', 'as' => 'users']);
+    });*/
+
+    Route::resource('users', 'AdminUsersController');
+    Route::resource('posts', 'AdminPostsController');
+    Route::resource('categories', 'AdminCategoriesController');
+
 
 });
