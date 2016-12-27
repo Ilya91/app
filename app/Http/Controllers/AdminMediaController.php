@@ -14,7 +14,7 @@ class AdminMediaController extends Controller
      */
     public function index()
     {
-        $photos = Photo::all();
+        $photos = Photo::orderBy('id', 'desc')->paginate(10);
         return view('admin.media.index',
             [
                 'photos' => $photos
@@ -45,7 +45,9 @@ class AdminMediaController extends Controller
 
             $photo = Photo::create(['file' => $name]);
 
-            $input['photo_id'] = $photo->id;
+            if ($photo){
+                return redirect('/admin/media')->with('message', 'Изображение было успешно загружено!');
+            }
         }
     }
 
@@ -89,8 +91,13 @@ class AdminMediaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function delete($id)
     {
-        //
+        $photo = Photo::findOrFail($id);
+        $path = public_path() . $photo->file;
+        \File::delete($path);
+        if($photo->delete()){
+            return redirect('/admin/media')->with('message', 'Изображение было успешно удалено!');
+        }
     }
 }
