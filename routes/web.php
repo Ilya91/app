@@ -35,7 +35,16 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function (){
     Route::resource('users', 'AdminUsersController');
     Route::resource('posts', 'AdminPostsController');
     Route::resource('categories', 'AdminCategoriesController');
-    Route::resource('media', 'AdminMediaController');
 
+    Route::group(['prefix' => 'media'], function (){
+
+        Route::get('/', ['uses' => 'AdminMediaController@index', 'as' => 'media.index']);
+
+        Route::get('/upload', ['uses' => 'AdminMediaController@upload', 'as' => 'media.upload']);
+
+        Route::post('/upload', ['uses' => 'AdminMediaController@store', 'as' => 'media.upload']);
+
+        Route::delete('/delete/{media}', ['uses' => 'AdminMediaController@delete', 'as' => 'media.delete']);
+    });
 
 });
