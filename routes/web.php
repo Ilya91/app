@@ -35,6 +35,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function (){
     Route::resource('users', 'AdminUsersController');
     Route::resource('posts', 'AdminPostsController');
     Route::resource('categories', 'AdminCategoriesController');
+    Route::resource('media', 'AdminMediaController');
 
 
 });
