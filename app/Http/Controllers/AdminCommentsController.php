@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Comment;
+use App\Http\Requests\CommentsCreateRequest;
 use App\Post;
 use App\User;
 use Auth;
@@ -40,7 +41,7 @@ class AdminCommentsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CommentsCreateRequest $request)
     {
         $user = Auth::user();
         $input = $request->all();
@@ -90,7 +91,12 @@ class AdminCommentsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $input = $request->all();
+        $comment = Comment::findOrFail($id);
+
+        if ($comment->update($input)){
+            return redirect()->back()->with('message', 'Статус комментария обновлен');
+        }
     }
 
     /**
@@ -101,6 +107,9 @@ class AdminCommentsController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $comment = Comment::findOrFail($id);
+        if($comment->delete()){
+            return redirect()->back()->with('message', 'Комментарий был удалён');
+        }
     }
 }
