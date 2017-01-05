@@ -8,6 +8,8 @@ use App\Http\Requests\PostsEditRequest;
 use App\Photo;
 use App\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
+use Intervention\Image\Facades\Image;
 
 class AdminPostsController extends Controller
 {
@@ -70,9 +72,9 @@ class AdminPostsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($slug)
     {
-        $post = Post::findOrFail($id);
+        $post = Post::findBySlugOrFail($slug);
         return view('admin.posts.show',
             [
                 'post' => $post
@@ -110,20 +112,28 @@ class AdminPostsController extends Controller
         //dd($input);
         if ($file = $request->file('photo_id')){
 
-
-            if($post->photo_id){
+            if($post->photo){
                 $path = public_path() . $post->photo->file;
                 \File::delete($path);
-                $name = time() . $file->getClientOriginalName();
-                $file->move('images', $name);
+
                 $photo = Photo::find($post->photo_id);
+
+                $name = time() . $file->getClientOriginalName();
+                $file2 = $photo->getPath() . $name;
+                $img = Image::make($file);
+
+                $img->fit(900, 300)->insert($photo->getWatermark(), 'bottom-right', 10, 10)->save($file2);
                 $photo->update(['file' => $name]);
                 $input['photo_id'] = $photo->id;
             }else{
                 $name = time() . $file->getClientOriginalName();
-                //dd($name);
-                $file->move('images', $name);
                 $photo = Photo::create(['file' => $name]);
+
+                $file2 = $photo->getPath() . $name;
+                $img = Image::make($file);
+
+                $img->fit(900, 300)->insert($photo->getWatermark(), 'bottom-right', 10, 10)->save($file2);
+
                 $input['photo_id'] = $photo->id;
             }
         }
@@ -141,6 +151,18 @@ class AdminPostsController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $post = Post::findOrFail($id);
+        $photo = Photo::find($post->photo_id);
+
+        if($post){
+            $post->delete();
+        }
+        if($photo){
+            $path = public_path() . $photo->file;
+            \File::delete($path);
+            $photo->delete();
+        }
+        $message = 'Post was daleted!';
+        return redirect('/admin/posts')->with('deleted_post', $message);
     }
 }
