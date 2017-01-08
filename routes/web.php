@@ -11,13 +11,15 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', ['uses' => 'BlogPostController@index', 'as' => 'index']);
+Route::get('/posts/{slug}', ['uses' => 'BlogPostController@show', 'as' => 'post']);
 
 Auth::routes();
+Route::get('/user/activation/{token}', 'Auth\RegisterController@userActivation');
+//Route::get('/home', 'HomeController@index');
 
-Route::get('/home', 'HomeController@index');
+Route::get('/redirect', 'SocialAuthController@redirect');
+Route::get('/callback', 'SocialAuthController@callback');
 
 Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function (){
 //admin
@@ -35,6 +37,8 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function (){
     Route::resource('users', 'AdminUsersController');
     Route::resource('posts', 'AdminPostsController');
     Route::resource('categories', 'AdminCategoriesController');
+    Route::resource('comments', 'AdminCommentsController');
+    Route::resource('comment/replies', 'AdminCommentRepliesController');
 
     Route::group(['prefix' => 'media'], function (){
 
@@ -46,5 +50,21 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function (){
 
         Route::delete('/delete/{media}', ['uses' => 'AdminMediaController@delete', 'as' => 'media.delete']);
     });
+
+    Route::group(['prefix' => 'comments'], function (){
+
+        Route::post('/create/{id}', ['uses' => 'AdminCommentsController@createcomment', 'as' => 'comment.create']);
+
+    });
+
+    Route::group(['prefix' => 'profile'], function (){
+
+        Route::get('/', ['uses' => 'AdminProfileController@index', 'as' => 'profile']);
+        Route::get('/edit', ['uses' => 'AdminProfileController@edit', 'as' => 'profile.edit']);
+        Route::post('/update/{id}', ['uses' => 'AdminProfileController@update', 'as' => 'profile.update']);
+        Route::post('/delete', ['uses' => 'AdminProfileController@destroy', 'as' => 'profile.delete']);
+
+    });
+
 
 });
